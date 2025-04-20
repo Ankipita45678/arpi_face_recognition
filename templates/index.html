@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face Recognition</title>
+    <style>
+        body { text-align: center; background: #f0f0f0; font-family: sans-serif; }
+        video, canvas { border: 2px solid black; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Live Face Recognition</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+    <p id="result">Detected Person: <b>None</b></p>
+    <p id="greeting"></p>
+
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const resultText = document.getElementById('result');
+
+        // Start webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => video.srcObject = stream)
+            .catch(err => console.error("Webcam access denied", err));
+
+        function captureAndSend() {
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/jpeg');
+
+            fetch('/recognize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: dataURL })
+            })
+            .then(res => res.json())
+            .then(data => {
+            resultText.innerHTML = `Detected Person: <b>${data.name}</b>`;
+            document.getElementById("greeting").innerText = data.greeting;
+            })
+
+            .catch(err => console.error(err));
+        }
+
+        // Recognize every 3 seconds
+        setInterval(captureAndSend, 3000);
+    </script>
+</body>
+</html>
