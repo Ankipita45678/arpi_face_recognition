@@ -3,3 +3,4 @@ face_recognition
 opencv-python
 pillow
 openpyxl
+dlib==19.22.99
